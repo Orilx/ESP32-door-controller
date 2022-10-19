@@ -1,9 +1,14 @@
 import usocket as socket
 import ustruct as struct
-
 from utils import logger
 
 class MQTTException(Exception):
+    pass
+
+class RCV_PINGRESP_Exception(Exception):
+    pass
+
+class MQTT_OFFLINE_Exception(Exception):
     pass
 
 
@@ -187,7 +192,8 @@ class MQTTClient:
             sz = self.sock.read(1)[0]
             assert sz == 0
             # logger('RCV PINGRESP')
-            return None
+            raise RCV_PINGRESP_Exception
+            # return None
         op = res[0]
         if op & 0xF0 != 0x30:
             return op

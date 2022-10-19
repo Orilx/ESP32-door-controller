@@ -27,8 +27,7 @@ async def sync_ntp():
     ntptime.host = 'ntp1.aliyun.com'
     try:
         ntptime.settime()
-    except Exception as e:
-        print(e)
+    except OSError as e:
         raise SYNC_ERROR
 
 

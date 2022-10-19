@@ -2,7 +2,7 @@ import aioble
 
 from utils import get_format_time
 from config import MI_DEVICE_MAC, sub_topic, pub_topic
-from mqtt import client
+from network_manager import mqtt_client
 
 
 def decode_adv_data(adv_data):
@@ -46,6 +46,6 @@ async def get_temp(t):
             'time': get_format_time(),
         }
 
-    await client.publish(pub_topic+'gate/mi_sensor', **msg)
+    await mqtt_client.publish(pub_topic+'gate/mi_sensor', **msg)
 
-client.set_callback(sub_topic+'gate/scan_mi_sensor', get_temp)
+mqtt_client.set_callback(sub_topic+'gate/scan_mi_sensor', get_temp)

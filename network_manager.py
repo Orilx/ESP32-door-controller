@@ -1,10 +1,13 @@
 import network
 import uasyncio
 
-from mqtt import client
+from mqtt import Mqtt, NETWORK_ERROR_Exception
 from config import password, ssid, pub_topic
 from utils import get_format_time, sync_time, logger
+from config import client_id, host_ip, passwd, port, pub_topic, sub_topic, user
 
+mqtt_client = Mqtt(client_id, user, passwd, host_ip,
+              port, sub_topic, pub_topic)
 
 class wlan_manager:
     wlan = network.WLAN(network.STA_IF)
@@ -16,25 +19,28 @@ class wlan_manager:
     @classmethod
     async def connect(cls):
         network.WLAN(network.AP_IF).active(False)
-        # 启动时先关掉 wifi, 避免一些奇奇怪怪的错误发生
+        # 重启 wifi, 避免一些奇奇怪怪的错误发生
         cls.wlan.active(False)
-        await uasyncio.sleep(1)
+        await uasyncio.sleep(3)
         cls.wlan.active(True)
-        logger('网络启动')
+        logger('WLAN 启动')
         cls.wlan.connect(ssid, password)
 
         while not cls.is_conn():
-            logger("网络连接中...")
+            logger("WLAN 连接中...")
             await uasyncio.sleep_ms(500)
-        logger('网络连接成功')
+        logger('WLAN 连接成功')
 
         # 同步时间
         await sync_time()
 
         # 连接 MQTT 服务器
-
-        client.set_last_will(pub_topic+'offline', msg='Device offline.')
-        await client.connect_server()
-        await uasyncio.sleep(1)
-        await client.subscribe()
-        await client.publish(pub_topic+'online', msg='device online.', time=get_format_time())
+        try:
+            mqtt_client.set_last_will(pub_topic+'offline', msg='Device_test offline.')
+            await mqtt_client.connect_server()
+            await uasyncio.sleep(1)
+            await mqtt_client.subscribe()
+        except NETWORK_ERROR_Exception:
+            logger('无法连接到 MQTT 服务器...')
+        else:
+            await mqtt_client.publish(pub_topic+'online', msg='Device_test online.', time=get_format_time())

@@ -3,7 +3,7 @@ from machine import PWM, Pin
 
 from config import sub_topic, pub_topic
 from utils import get_format_time, logger
-from mqtt import client
+from network_manager import mqtt_client
 
 
 class Lock:
@@ -17,7 +17,7 @@ class Lock:
             cls.pwm.duty(100)
         else:
             logger('The door is already opened!')
-            await client.publish(sub_topic+'gate', msg='The door is already opened!')
+            await mqtt_client.publish(pub_topic+'gate', msg='The door is already opened!')
             return
         while True:
             await uasyncio.sleep_ms(600)
@@ -25,7 +25,7 @@ class Lock:
                 cls.pwm.duty(0)
                 break
         logger('The door opened.')
-        await client.publish(sub_topic+'gate', msg="The door opened.")
+        await mqtt_client.publish(pub_topic+'gate', msg="The door opened.")
     
     @classmethod
     async def checker(cls):
@@ -37,7 +37,7 @@ class Lock:
         
 
 
-client.set_callback(sub_topic+'gate/open', Lock.open_door)
+mqtt_client.set_callback(sub_topic+'gate/open', Lock.open_door)
 
 
 monitor_pin = Pin(7, Pin.IN)
